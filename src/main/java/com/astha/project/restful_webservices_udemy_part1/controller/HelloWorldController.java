@@ -1,6 +1,7 @@
 package com.astha.project.restful_webservices_udemy_part1.controller;
 
-import com.astha.project.restful_webservices_udemy_part1.HellowWorldBean;
+import com.astha.project.restful_webservices_udemy_part1.HelloWorldBean;
+import com.astha.project.restful_webservices_udemy_part1.HelloWorldBean;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,13 +17,13 @@ public class HelloWorldController {
 
     //@RequestMapping(method= RequestMethod.GET, path="/hello-world-bean")
     @GetMapping("/hello-world-bean")
-    public HellowWorldBean helloWorldBean(){
-        return new HellowWorldBean("Hello World");
+    public HelloWorldBean helloWorldBean(){
+        return new HelloWorldBean("Hello World");
     }
 
     @GetMapping("/hello-world/{name}")
-    public HellowWorldBean helloWorldPathVariable(@PathVariable String name){
-        return new HellowWorldBean(String.format("Hello World, %s",name));
+    public HelloWorldBean helloWorldPathVariable(@PathVariable String name){
+        return new HelloWorldBean(String.format("Hello World, %s",name));
     }
 
 

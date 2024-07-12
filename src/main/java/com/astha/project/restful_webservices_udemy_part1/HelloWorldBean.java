@@ -1,10 +1,10 @@
 package com.astha.project.restful_webservices_udemy_part1;
 
-public class HellowWorldBean {
+public class HelloWorldBean {
 
     private String message;
 
-    public HellowWorldBean(String message) {
+    public HelloWorldBean(String message) {
         this.message=message;
     }
 
