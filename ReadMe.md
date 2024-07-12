@@ -66,3 +66,6 @@ How are all the jars available (Spring, SpringMVC, Jackson, Tomcat)?
 - Starter Projects- Spring Web dependency(Spring boot-starter-web) has springBoot-starter Web(spring-webmvc, spring-web, spring-boot-starter-tomcat, spring boot starter-json)
 
 What is a bean in SpringBoot?
+       A bean is an object that is instantiated, assembled and managed by a Spring IOC(Inversion of Control) container.
+
+@PathVariable - simplifies extracting data from incoming requests making it easier to process dynamic values from the URLs in your Rest API endpoints
