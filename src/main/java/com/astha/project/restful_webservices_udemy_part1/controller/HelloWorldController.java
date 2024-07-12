@@ -1,7 +1,6 @@
 package com.astha.project.restful_webservices_udemy_part1.controller;
 
-import com.astha.project.restful_webservices_udemy_part1.HelloWorldBean;
-import com.astha.project.restful_webservices_udemy_part1.HelloWorldBean;
+import com.astha.project.restful_webservices_udemy_part1.helloworld.HelloWorldBean;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

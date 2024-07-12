@@ -1,4 +1,4 @@
-package com.astha.project.restful_webservices_udemy_part1;
+package com.astha.project.restful_webservices_udemy_part1.user;
 
 import java.time.LocalDate;
 
