@@ -69,3 +69,10 @@ What is a bean in SpringBoot?
        A bean is an object that is instantiated, assembled and managed by a Spring IOC(Inversion of Control) container.
 
 @PathVariable - simplifies extracting data from incoming requests making it easier to process dynamic values from the URLs in your Rest API endpoints
+
+```jsx
+ @GetMapping("/hello-world/{name}")
+    public HellowWorldBean hellowWorldPathVariable(@PathVariable String name){
+        return new HellowWorldBean(String.format("Hello World, %s",name));
+    }
+```
