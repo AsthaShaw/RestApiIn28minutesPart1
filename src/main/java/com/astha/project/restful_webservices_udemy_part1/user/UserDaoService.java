@@ -28,7 +28,10 @@ public class UserDaoService {
 //    }
 
     public User findOneById(Integer id) {
-        return users.stream().filter(user->user.getId().equals(id)).findFirst().get();
+//        return users.stream().filter(user->user.getId().equals(id)).findFirst().get();
+        //get() throws NoElementException so better to use the below
+        return users.stream().filter(user->user.getId().equals(id)).findFirst().orElse(null);
+        //But the above returns 200 success message but gives nothing when an error, so this isn't optimum, so better  to throw an exception
     }
 
     public User save(User user){
