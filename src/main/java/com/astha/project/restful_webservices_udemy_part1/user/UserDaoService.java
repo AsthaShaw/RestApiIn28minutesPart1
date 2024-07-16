@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Component
 public class UserDaoService {
@@ -30,7 +31,8 @@ public class UserDaoService {
     public User findOneById(Integer id) {
 //        return users.stream().filter(user->user.getId().equals(id)).findFirst().get();
         //get() throws NoElementException so better to use the below
-        return users.stream().filter(user->user.getId().equals(id)).findFirst().orElse(null);
+        Predicate<User> predicate = user -> user.getId().equals(id);
+        return users.stream().filter(predicate).findFirst().orElse(null);
         //But the above returns 200 success message but gives nothing when an error, so this isn't optimum, so better  to throw an exception
     }
 
@@ -38,5 +40,10 @@ public class UserDaoService {
         user.setId(++userCount);
         users.add(user);
         return user;
+    }
+
+    public void deleteById(int id) {
+        Predicate<User> predicate = user -> user.getId().equals(id);
+        users.removeIf(predicate);
     }
 }
