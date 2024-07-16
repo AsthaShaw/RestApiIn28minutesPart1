@@ -242,6 +242,8 @@ The post mapping at the moment is sending 200 as a success response instead of 2
 
 • With **ResponseEntity**, you can also set headers and status codes.
 
+-**`ResponseEntity`** in Spring is a powerful class that allows you to **customize** your HTTP responses. It represents the entire HTTP response, including the **status code**, **headers**, and **body**. 
+
 **Now we would like to return the URI in the post request as a response. So to the URI of the current request we would like to add a path “/{id}” and replace it with the id of the present user generated and converted to the URI and send it back;**
 
 ```jsx
@@ -255,3 +257,304 @@ The post mapping at the moment is sending 200 as a success response instead of 2
 ```
 
 Now go and check in the header for the location and you will see the uri.
+
+**Implementing Exception Handling for 404 Request Not Found**
+
+When you try users/101 you will get a WhiteLabelErrorPage with an exception trace. We wouldn’t like to have that so what we can do is try exception handling
+
+- Changing the findOneById method code-Changing the get() method to an optional. But again that was just returning null so added exception handling
+
+```jsx
+  public User findOneById(Integer id) {
+//        return users.stream().filter(user->user.getId().equals(id)).findFirst().get();
+        //get() throws NoElementException so better to use the below
+        return users.stream().filter(user->user.getId().equals(id)).findFirst().orElse(null);
+        //But the above returns 200 success message but gives nothing when an error, so this isn't optimum, so better  to throw an exception
+    }
+```
+
+- After adding Exception Handling
+
+```jsx
+@GetMapping("/users/{id}")
+    public User retrieveUser(@PathVariable int id){
+
+        User user= service.findOneById(id);
+
+        if(user==null){
+            throw new UserNotFoundException("id:"+id);
+        }
+
+        return user;
+    }
+```
+
+Adding a custom Exception. The error was 500 Internal server error but we want to return 404 user not found so we need a ResponseStatus with our exception handling
+
+```jsx
+package com.astha.project.restful_webservices_udemy_part1.user;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+//When user not found it is a 404 error and hence to return a 404 we need a ResponseStatus
+@ResponseStatus(code= HttpStatus.NOT_FOUND)
+public class UserNotFoundException extends RuntimeException{
+    public UserNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+### Implementing Generic Exception Handling for all resources
+
+When we go to postman of a 404 error we see the following as structure of error handing in the body of the response
+
+```jsx
+{
+    "timestamp": "2024-07-15T17:16:42.793+00:00",
+    "status": 404,
+    "error": "Not Found",
+    "path": "/users/404"
+}
+```
+
+This is a common structure that is defined by Spring and how is it implemented?
+
+By ResponseEntityExceptionHandler-a standard class which raises all Spring MVC exception
+
+And within that ResponseEntityException there is a handleException that defines the structure above and what we are going to do is just override that to provide our own structure. For that we will create two classes-one ErrorDetails class and the other CustomizedResponseEntityExceptionHandler and ErrorDetails(this has our structure)
+
+CustomizedResponseEntityExceptionHandler
+
+```jsx
+package com.astha.project.restful_webservices_udemy_part1.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.time.LocalDate;
+
+//To make it available to all controllers in the project use @ControllerAdvice
+@ControllerAdvice
+public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public final ResponseEntity<Object> handleAllException(Exception ex, WebRequest request) throws Exception {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDate.now(), ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+```
+
+ErrorDetails
+
+```jsx
+package com.astha.project.restful_webservices_udemy_part1.exception;
+
+import java.time.LocalDate;
+
+public class ErrorDetails {
+    //Structure of the ErrorDetails
+    //timestamp
+    //message
+    //details
+
+    private LocalDate timestamp;
+    private String message;
+    private String details;
+
+    public ErrorDetails(LocalDate timestamp, String message, String details) {
+        super();
+        this.timestamp = timestamp;
+        this.message = message;
+        this.details = details;
+    }
+
+    public LocalDate getTimestamp() {
+        return timestamp;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+}
+
+```
+
+We get the body response in postman like this
+
+```jsx
+{
+    "timestamp": "2024-07-15",
+    "message": "id:101",
+    "details": "uri=/users/101"
+}
+```
+
+We can change the LocalDate to LocalDateTime and get time as well. Also for user not found we do not keep Internal server error for “user not found” issue and can customise the
+
+`CustomizedResponseEntityExceptionHandler` further. **Having a right response structure and status to the consumer of your RestAPI is really important**
+
+```jsx
+package com.astha.project.restful_webservices_udemy_part1.exception;
+
+import com.astha.project.restful_webservices_udemy_part1.user.UserNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+//To make it available to all controllers in the project use @ControllerAdvice
+//You can also use @InitBinder, @ModelAttribute methods to be shared across multiple @Controller classes
+@ControllerAdvice
+public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public final ResponseEntity<ErrorDetails> handleAllException(Exception ex, WebRequest request) throws Exception {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<ErrorDetails>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public final ResponseEntity<ErrorDetails> handleUserNotFoundException(Exception ex, WebRequest request) throws Exception {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<ErrorDetails>(errorDetails, HttpStatus.NOT_FOUND);
+    }
+}
+
+```
+
+### Implementing Delete Request
+
+UserDaoService
+
+```jsx
+ public void deleteById(int id) {
+        Predicate<User> predicate = user -> user.getId().equals(id);
+        users.removeIf(predicate);
+    }
+```
+
+UserResource controller
+
+```jsx
+   @DeleteMapping("/users/{id}")
+    public void deleteUser(@PathVariable int id){
+
+        service.deleteById(id);
+
+    }
+```
+
+### Implementing Validations for RestAPI
+
+At the moment we can post users without a name and future dob which is bad. To prevent this we need validations. We need to have a dependency for that.
+
+```jsx
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+```
+
+Add the @Valid tag to the controller of postmapping
+
+@Valid-The **`@Valid`** annotation in Spring is used for **validation purposes**. When you apply **`@Valid`** to a method parameter, Spring automatically triggers validation for that parameter before invoking the method. It ensures that the incoming data adheres to specified validation rules. [For example, if you have an object annotated with **`@Valid`**, the validation engine will validate its properties based on constraints defined in the object’s class1](https://stackoverflow.com/questions/3595160/what-does-the-valid-annotation-indicate-in-spring)[2](https://www.sitepoint.com/java-bean-validation-object-graphs-valid-annotation/)[3](https://medium.com/@himani.prasad016/validations-in-spring-boot-e9948aa6286b). If any validation errors occur, Spring responds with an HTTP 400 Bad Request status code. So, it’s a handy way to ensure data integrity and validity in your Spring applications!
+
+```jsx
+
+    @PostMapping("/users")
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user){
+        User savedUser=service.save(user);
+        URI location= ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
+        return ResponseEntity.created(location).build();
+
+    }
+```
+
+Now we need to define the validations in our User Bean having name size to be a min of 2 characters and dob to be of past date
+
+```jsx
+  private Integer id;
+    @Size(min=2)
+    private String name;
+    @Past
+    private LocalDate birthdate;
+```
+
+Now when we put blank name and future birthdate then this will give us Bad Request 400. But still does not say what exactly went wrong. Consumer will have no idea what went wrong with the request.
+
+In ResponseEntityExceptionHandler there is a method called MethodArgumentNotValid which throws MethodArgumentNotValidException. So we can override this.
+
+```jsx
+ @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+```
+
+Now if you try posting then we get a long message with a bad request which tells the consumer the issue but still its too long and can be customised further
+
+```jsx
+{
+    "timestamp": "2024-07-16T17:44:20.646576",
+    "message": "Validation failed for argument [0] in public org.springframework.http.ResponseEntity<com.astha.project.restful_webservices_udemy_part1.user.User> com.astha.project.restful_webservices_udemy_part1.user.UserResource.createUser(com.astha.project.restful_webservices_udemy_part1.user.User) with 2 errors: [Field error in object 'user' on field 'birthdate': rejected value [2098-04-17]; codes [Past.user.birthdate,Past.birthdate,Past.java.time.LocalDate,Past]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.birthdate,birthdate]; arguments []; default message [birthdate]]; default message [must be a past date]] [Field error in object 'user' on field 'name': rejected value []; codes [Size.user.name,Size.name,Size.java.lang.String,Size]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [user.name,name]; arguments []; default message [name],2147483647,2]; default message [size must be between 2 and 2147483647]] ",
+    "details": "uri=/users"
+}
+```
+
+So for that we add message to the fields in User Bean like below
+
+```jsx
+private Integer id;
+    @Size(min=2, message="Name should have atleast 2 characters")
+    private String name;
+    @Past(message="Birth Date should be in the past")
+    private LocalDate birthdate;
+```
+
+You can go further with the customisation-By customising the exception handler to just send the first error message and then once user fixes the first issue and then the second error issue would be shown like the below-changing ex.getMessage() to ex.getFieldError().getDefaultMessage() and now try in postman
+
+```jsx
+  @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDateTime.now(), ex.getFieldError().getDefaultMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+```
+
+The other way you can do is below
+
+```jsx
+ @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ErrorDetails errorDetails=new ErrorDetails(LocalDateTime.now(),"Total Errors are::"+ex.getErrorCount()+" First Error:"+ex.getFieldError().getDefaultMessage(), request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+```
+
+And you will get the message as below :
+
+```jsx
+{
+    "timestamp": "2024-07-16T18:05:39.77191",
+    "message": "Total Errors are::2 First Error:Birth Date should be in the past",
+    "details": "uri=/users"
+}
+```
