@@ -6,12 +6,9 @@ Reference -In 28 minutes repo-https://github.com/in28minutes/spring-microservice
 
 - IntelliJ IDEA Community Version
 - Spring Initializer
-
-                        - Dependencies - Spring Web- For building web applications including Restful applications using Spring MVC and Apache Tomcat as the default embedded container 
-
-                                                   - Spring Data JPA- For persisting data in SQL database with Java Persistence API using Spring Data and Hibernate 
-
-                                                   -H2 Database-Provides a fast in-memory database that supports JDBC API
+ - Dependencies -> Spring Web- For building web applications including Restful applications using Spring MVC and Apache Tomcat as the default embedded container
+                -> Spring Data JPA- For persisting data in SQL database with Java Persistence API using Spring Data and Hibernate 
+                -> H2 Database-Provides a fast in-memory database that supports JDBC API
 
 ### Creating a Hello World Rest API
 
