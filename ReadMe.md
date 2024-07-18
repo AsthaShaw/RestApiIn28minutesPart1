@@ -558,3 +558,54 @@ And you will get the message as below :
     "details": "uri=/users"
 }
 ```
+### Advanced Rest API features
+
+- Documentation
+- Content Negotiation
+- Internationalization-i18n
+- Versioning
+- HATEOAS
+- Static Filtering
+- Dynamic Filtering
+- Monitoring
+
+### Rest API Documentation
+
+- The consumers need to understand our Rest API and hence we need documentation
+- Consumers need to understand the - **Resources we use, Actions performed, Request/Response Structure(Constraints/Validations)**
+
+For consistency(documentation consistent with other RestAPIs used in the enterprise) and accuracy(ensuring documentation is upto date and correct) purpose we would generate documentation through code. Manually can be done but more efficient would be generating documentation through code
+
+### Rest API Documentation using Swagger and OpenAPI
+
+2011-Swagger Specification and Swagger Tools were introduced
+
+2016- OpenAPI specification created based on Swagger specification but Swagger Tools like Swagger UI which brings a visual aspect to the RestAPI is separate and is still very much in use to visualise and interact with our Rest API
+
+For this we would need a dependency. Versions keep changing have a look out
+
+```jsx
+<dependency>
+	<groupId>org.springdoc</groupId>
+	<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+	<version>2.3.0</version>
+</dependency>
+```
+
+Two important links
+
+`springdoc-openapi` java library helps to automate the generation of API documentation using spring boot projects. `springdoc-openapi` works by examining an application at runtime to infer API semantics based on spring configurations, class structure and various annotations.
+
+https://springdoc.org/
+
+https://github.com/springdoc/springdoc-openapi
+
+Make sure to see which version of SpringBoot is supported by the openapi. And the dependency is there in your pom.xml. If the dependency is not there then go to the github page and add the dependency from below.
+
+https://github.com/springdoc/springdoc-openapi/blob/main/springdoc-openapi-starter-webmvc-ui/pom.xml
+
+And now run the server, go to the below link and see the magic!
+
+http://localhost:8080/swagger-ui/index.html
+
+The v3 api-docs at the top of the swagger page will help us to see the OpenAPI specification defining our RestAPI whereas the swagger page is more for visualising the API and playing with it.
